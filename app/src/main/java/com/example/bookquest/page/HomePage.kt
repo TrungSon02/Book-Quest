@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -56,6 +57,7 @@ private val motivationQuotes = listOf(
     "A house without books is like a room without windows",
     "He that loves reading has everything within his reach",
 )
+
 @Composable
 fun BookBox(
     modifier: Modifier = Modifier,
@@ -156,6 +158,7 @@ private fun ImageBadge(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun HomePage(modifier: Modifier = Modifier){
     var query by rememberSaveable { mutableStateOf("") }
+    val quote = rememberSaveable { motivationQuotes.random() }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -165,7 +168,7 @@ fun HomePage(modifier: Modifier = Modifier){
         //Title
         Text("Book Quest", fontWeight = FontWeight.Bold, fontSize = 30.sp)
         Text(
-            text = motivationQuotes.random(),
+            text = quote,
             style = MaterialTheme.typography.bodyMedium,
             fontStyle = FontStyle.Italic,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -215,10 +218,11 @@ fun HomePage(modifier: Modifier = Modifier){
         }
 
         //Book list
-        LazyVerticalGrid(
+        LazyVerticalStaggeredGrid(
             horizontalArrangement = Arrangement.spacedBy(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            columns = GridCells.Adaptive(minSize = 150.dp)
+            verticalItemSpacing = 24.dp,
+            columns = StaggeredGridCells.Adaptive(minSize = 150.dp),
+            modifier = Modifier.weight(1f)
         ) {
             items(20){
                 BookBox()
