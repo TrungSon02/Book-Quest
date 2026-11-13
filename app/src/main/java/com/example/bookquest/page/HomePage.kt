@@ -21,6 +21,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bookquest.R
-
+import androidx.compose.material3.FilterChip
 private val motivationQuotes = listOf(
     "A book is a gift you can open again and again",
     "We read to know we are not alone",
@@ -58,12 +60,139 @@ private val motivationQuotes = listOf(
     "He that loves reading has everything within his reach",
 )
 
+//Testing data
+private val genres = listOf("Self-help", "Fiction", "Fantasy", "Science", "History", "Business")
+private val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
+
+@Composable
+fun HomePage(modifier: Modifier = Modifier){
+    var query by rememberSaveable { mutableStateOf("") }
+    val quote = rememberSaveable { motivationQuotes.random() }
+    var recommendedOnly by rememberSaveable { mutableStateOf(false) }
+    var genre by rememberSaveable { mutableStateOf<String?>(null) }
+    var level by rememberSaveable { mutableStateOf<String?>(null) }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp),
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
+        //Title
+        Text("Book Quest", fontWeight = FontWeight.Bold, fontSize = 30.sp)
+        Text(
+            text = quote,
+            style = MaterialTheme.typography.bodyMedium,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+
+        //Search Bar
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Search books, authors...") },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.search_icon),
+                    contentDescription = null
+
+                )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(28.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        )
+
+        //Filter
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            FilterChip(
+                selected = recommendedOnly,
+                onClick = { recommendedOnly = !recommendedOnly },
+                label = { Text("Recommended") }
+            )
+            FilterDropdownChip("Genre", genres, genre) { genre = it }
+            FilterDropdownChip("Level", levels, level) { level = it }
+        }
+
+        if(1==2) { //Change with the checking if user has read any books afterward
+            //Continue where u left off
+            Text(
+                "Continue Your Quest!",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            HorizontalDivider(
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .align(Alignment.Start)
+            )
+
+            HorizontalDivider(
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        //Book list
+        LazyVerticalStaggeredGrid(
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalItemSpacing = 24.dp,
+            columns = StaggeredGridCells.Adaptive(minSize = 150.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(20){
+                BookBox()
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilterDropdownChip(
+    label: String,
+    options: List<String>,
+    selected: String?,
+    onSelect: (String?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        FilterChip(
+            selected = selected != null,
+            onClick = { expanded = true },
+            label = { Text("${selected ?: label} ▾") }
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text("All") },
+                onClick = { onSelect(null); expanded = false }
+            )
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = { onSelect(option); expanded = false }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun BookBox(
     modifier: Modifier = Modifier,
     img: Int = R.drawable.sample_cover,
     engLevel: String = "C1",
-    progress: Int = 68,
+    progress: Int = 67,
     title: String = "Atomic Habits",
     author: String = "James Clear",
     category: String = "Self-help",
@@ -152,81 +281,5 @@ private fun ImageBadge(text: String, modifier: Modifier = Modifier) {
             color = Color.White,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
         )
-    }
-}
-
-@Composable
-fun HomePage(modifier: Modifier = Modifier){
-    var query by rememberSaveable { mutableStateOf("") }
-    val quote = rememberSaveable { motivationQuotes.random() }
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = modifier.fillMaxSize().padding(16.dp)
-    ) {
-        //Title
-        Text("Book Quest", fontWeight = FontWeight.Bold, fontSize = 30.sp)
-        Text(
-            text = quote,
-            style = MaterialTheme.typography.bodyMedium,
-            fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-
-        //Search Bar
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search books, authors...") },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.search_icon),
-                    contentDescription = null
-
-                )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(28.dp),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        )
-
-        if(1==2) { //Change with the checking if user has read any books afterward
-            //Continue where u left off
-            Text(
-                "Continue Your Quest!",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                modifier = Modifier.align(Alignment.Start)
-            )
-
-            HorizontalDivider(
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .fillMaxWidth(0.5f)
-                    .align(Alignment.Start)
-            )
-
-            HorizontalDivider(
-                thickness = 2.dp,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        //Book list
-        LazyVerticalStaggeredGrid(
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-            verticalItemSpacing = 24.dp,
-            columns = StaggeredGridCells.Adaptive(minSize = 150.dp),
-            modifier = Modifier.weight(1f)
-        ) {
-            items(20){
-                BookBox()
-            }
-        }
     }
 }
