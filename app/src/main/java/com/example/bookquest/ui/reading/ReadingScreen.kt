@@ -14,11 +14,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,8 +29,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,6 +45,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bookquest.ui.theme.BookQuestTheme
 
+private enum class ActiveDialog { None, PageQuestion, ChapterQuiz }
+
+private enum class AfterPageQuestion { NextPage, ChapterQuiz }
+
 @Composable
 fun ReadingScreen(
     book: ReadingBook,
@@ -50,9 +57,22 @@ fun ReadingScreen(
 ) {
     var chapterIndex by rememberSaveable { mutableIntStateOf(0) }
     var pageIndex by rememberSaveable { mutableIntStateOf(0) }
+    var activeDialog by rememberSaveable { mutableStateOf(ActiveDialog.None) }
+    var afterPageQuestion by rememberSaveable { mutableStateOf(AfterPageQuestion.NextPage) }
+    val pageResults = remember { mutableStateMapOf<String, Boolean>() }
 
     val chapter = book.chapters[chapterIndex]
     val totalPages = chapter.pages.size
+    val isLastPage = pageIndex == totalPages - 1
+    val pageKey = "$chapterIndex:$pageIndex"
+    val pageQuestion = chapter.pageQuestions.getOrNull(pageIndex)
+    val pageQuestionPending = pageQuestion != null && !pageResults.containsKey(pageKey)
+    val hasChapterQuiz = chapter.questions.isNotEmpty()
+    val scrollState = rememberScrollState()
+
+    LaunchedEffect(chapterIndex, pageIndex) {
+        scrollState.scrollTo(0)
+    }
 
     Scaffold(
         modifier = modifier,
@@ -61,14 +81,21 @@ fun ReadingScreen(
                 currentPage = pageIndex + 1,
                 totalPages = totalPages,
                 onPrevious = { if (pageIndex > 0) pageIndex-- },
-                onNext = { if (pageIndex < totalPages - 1) pageIndex++ }
+                onNext = {
+                    if (pageQuestionPending) {
+                        afterPageQuestion = AfterPageQuestion.NextPage
+                        activeDialog = ActiveDialog.PageQuestion
+                    } else if (pageIndex < totalPages - 1) {
+                        pageIndex++
+                    }
+                }
             )
         }
     ) { padding ->
         Column(
             Modifier
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
             CoverHeader(onBackClick = onBackClick)
 
@@ -101,8 +128,55 @@ fun ReadingScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     lineHeight = 28.sp
                 )
+
+                if (isLastPage && (pageQuestionPending || hasChapterQuiz)) {
+                    Button(
+                        onClick = {
+                            if (pageQuestionPending) {
+                                afterPageQuestion = AfterPageQuestion.ChapterQuiz
+                                activeDialog = ActiveDialog.PageQuestion
+                            } else {
+                                activeDialog = ActiveDialog.ChapterQuiz
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Finish chapter")
+                    }
+                }
             }
         }
+    }
+
+    when (activeDialog) {
+        ActiveDialog.PageQuestion -> {
+            if (pageQuestion != null) {
+                QuestionDialog(
+                    questions = listOf(pageQuestion),
+                    showSummary = false,
+                    onDismiss = { activeDialog = ActiveDialog.None },
+                    onAnswered = { pageResults[pageKey] = it },
+                    onDone = {
+                        activeDialog = ActiveDialog.None
+                        when (afterPageQuestion) {
+                            AfterPageQuestion.NextPage -> {
+                                if (pageIndex < totalPages - 1) pageIndex++
+                            }
+                            AfterPageQuestion.ChapterQuiz -> {
+                                if (hasChapterQuiz) activeDialog = ActiveDialog.ChapterQuiz
+                            }
+                        }
+                    }
+                )
+            }
+        }
+        ActiveDialog.ChapterQuiz -> {
+            QuestionDialog(
+                questions = chapter.questions,
+                onDismiss = { activeDialog = ActiveDialog.None }
+            )
+        }
+        ActiveDialog.None -> Unit
     }
 }
 
@@ -205,14 +279,75 @@ private fun ReadingScreenPreview() {
                 author = "Author Name",
                 chapters = listOf(
                     ReadingChapter(
-                        "Chapter 1",
-                        listOf("The morning fog drifted slowly over the quiet harbor, hiding the fishing boats until only their masts rose above the mist. Mara stood at the end of the old wooden pier, holding a thermos of tea and watching the water move beneath her feet. She had come here every day for a month, ever since her grandfather had left her the small bookshop on the corner of Willow Street. At first, the shop had felt like a burden, a room full of dusty shelves and stories nobody wanted to read. But slowly, page by page, she had begun to understand why he had loved it so much.\n\nEach book carried a small piece of the person who had owned it before. A faded ticket stub marked the middle of a mystery novel. A pressed flower rested between the pages of a poetry collection. In the margins of a worn travel guide, someone had written tiny notes about restaurants, train times, and the names of strangers who had been kind. Mara read them all, one evening after another, and the shop no longer felt empty. It felt like a library of lives, patiently waiting for someone to listen.\n\nAs the sun climbed higher and the fog began to lift, she finished her tea and walked back toward the shop. A young boy was already waiting outside the door, pressing his nose against the glass. He turned and asked if the store was open yet. Mara smiled, found the heavy brass key in her pocket, and told him that it was now.",
-                            "Page two text.",
-                            "Page three text.")
+                        title = "Chapter 1",
+                        pages = listOf(
+                            "Mara inherited a small bookshop from her grandfather. At first, she thought it was a burden.",
+                            "Each old book carried a small piece of its former owner, such as a ticket stub or a pressed flower.",
+                            "One morning, a young boy waited outside the shop. Mara smiled and opened the door."
+                        ),
+                        pageQuestions = listOf(
+                            ReadingQuestion(
+                                question = "How did Mara feel about the bookshop at first?",
+                                options = listOf(
+                                    "Excited about it",
+                                    "She thought it was a burden",
+                                    "She wanted to expand it",
+                                    "She had never heard of it"
+                                ),
+                                correctIndex = 1,
+                                explanation = "The text says that at first she thought it was a burden."
+                            ),
+                            ReadingQuestion(
+                                question = "According to the text, what did old books carry?",
+                                options = listOf(
+                                    "Only dust",
+                                    "A small piece of their former owner",
+                                    "Maps of the town",
+                                    "Secret messages"
+                                ),
+                                correctIndex = 1,
+                                explanation = "Items such as a ticket stub or a pressed flower show traces of previous owners."
+                            ),
+                            ReadingQuestion(
+                                question = "What did Mara do when the boy waited outside?",
+                                options = listOf(
+                                    "Ignored him",
+                                    "Asked him to leave",
+                                    "Smiled and opened the door",
+                                    "Called her grandfather"
+                                ),
+                                correctIndex = 2,
+                                explanation = "The text says Mara smiled and opened the door."
+                            )
+                        ),
+                        questions = listOf(
+                            ReadingQuestion(
+                                question = "Why did Mara's feelings about the shop change?",
+                                options = listOf(
+                                    "She found it was very profitable",
+                                    "She began to see the stories inside the old books",
+                                    "A friend convinced her to keep it",
+                                    "She decided to sell it"
+                                ),
+                                correctIndex = 1,
+                                explanation = "The objects left in the books changed how she saw the shop."
+                            ),
+                            ReadingQuestion(
+                                question = "What does the author suggest about old books?",
+                                options = listOf(
+                                    "They are worthless",
+                                    "They carry small pieces of their former owners",
+                                    "They are hard to read",
+                                    "They should be thrown away"
+                                ),
+                                correctIndex = 1,
+                                explanation = "The ticket stub and pressed flower suggest the books hold personal traces."
+                            )
+                        )
                     ),
                     ReadingChapter(
-                        "Chapter 2",
-                        listOf("Chapter 2 page one.", "Chapter 2 page two.")
+                        title = "Chapter 2",
+                        pages = listOf("Chapter 2 page one.", "Chapter 2 page two.")
                     )
                 )
             ),
