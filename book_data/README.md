@@ -5,8 +5,8 @@ Place the 20 `.epub` files directly in `book_data/` (`book_files.file_url`), and
 | `book_id` | Title | `file_url` | `cover_image_url` |
 | --- | --- | --- | --- |
 | 1 | Atomic Habits | `book_data/01-atomic-habits.epub` | `book_data/covers/01-atomic-habits.jpg` |
-| 2 | The Little Prince | `book_data/02-little-prince.epub` | `book_data/covers/02-little-prince.jpg` |
-| 3 | Charlotte's Web | `book_data/03-charlottes-web.epub` | `book_data/covers/03-charlottes-web.jpg` |
+| 2 | The Little Prince | `book_data/02-litlle-prince.epub` | `book_data/covers/02-little-prince.jpg` |
+| 3 | Charlotte's Web | `book_data/03-charlotte-web.epub` | `book_data/covers/03-charlottes-web.jpg` |
 | 4 | The Alchemist | `book_data/04-the-alchemist.epub` | `book_data/covers/04-the-alchemist.jpg` |
 | 5 | Sapiens: A Brief History of Humankind | `book_data/05-sapiens.epub` | `book_data/covers/05-sapiens.jpg` |
 | 6 | The Hobbit | `book_data/06-the-hobbit.epub` | `book_data/covers/06-the-hobbit.jpg` |
