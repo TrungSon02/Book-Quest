@@ -47,5 +47,14 @@ interface BookDao {
     @Query("SELECT genre_name FROM genres ORDER BY genre_name")
     fun getGenreNames(): Flow<List<String>>
 
+    @Query("SELECT * FROM books WHERE book_id = :bookId LIMIT 1")
+    suspend fun getBookById(bookId: Long): data.entity.BookEntity?
+
+    @Query("SELECT file_url FROM book_files WHERE book_id = :bookId AND format = 'EPUB' LIMIT 1")
+    suspend fun getEpubFileUrl(bookId: Long): String?
+
+    @Query("SELECT * FROM chapters WHERE book_id = :bookId ORDER BY chapter_number ASC")
+    suspend fun getChaptersForBook(bookId: Long): List<data.entity.ChapterEntity>
+
 }
 
