@@ -51,6 +51,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.5")
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material.icons.core)
+    implementation("io.coil-kt:coil-compose:2.7.0")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

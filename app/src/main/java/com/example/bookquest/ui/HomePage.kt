@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
@@ -44,6 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bookquest.R
 import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import data.AppDatabase
+
 private val motivationQuotes = listOf(
     "A book is a gift you can open again and again",
     "We read to know we are not alone",
@@ -61,6 +68,25 @@ private val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
 
 @Composable
 fun HomePage(modifier: Modifier = Modifier){
+    //Get a Context so we can open the database
+    val context = LocalContext.current
+
+    //Open the database once, and get the DAO from it
+    val database = remember {
+        AppDatabase.get(context)
+    }
+    val bookDao = remember {
+        database.bookDao()
+    }
+
+    //Ask the DAO for the Flow of books, also only once
+    val booksFlow = remember {
+        bookDao.getAllBooks()
+    }
+
+    //Turn the Flow into state. Until the first list arrives, use an empty list.
+    val books by booksFlow.collectAsState(initial = emptyList())
+
     var query by rememberSaveable { mutableStateOf("") }
     val quote = rememberSaveable { motivationQuotes.random() }
     var recommendedOnly by rememberSaveable { mutableStateOf(false) }
@@ -145,8 +171,25 @@ fun HomePage(modifier: Modifier = Modifier){
             columns = StaggeredGridCells.Adaptive(minSize = 150.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(20){
-                BookBox()
+            items(
+                items = books,
+                key = { bookWithGenres -> bookWithGenres.book.id ?: 0L }
+            ) { bookWithGenres ->
+
+                // Take the pieces out of the combined object
+                val book = bookWithGenres.book
+                val genreNames = bookWithGenres.genres.map { genre -> genre.name }
+
+                // Pass them to the card one by one
+                BookBox(
+                    coverPath = book.coverPath,
+                    title = book.title,
+                    author = book.author,
+                    engLevel = book.level,
+                    description = book.description,
+                    genres = genreNames,
+                    progress = 0
+                )
             }
         }
     }
@@ -185,13 +228,13 @@ private fun FilterDropdownChip(
 @Composable
 fun BookBox(
     modifier: Modifier = Modifier,
-    img: Int = R.drawable.sample_cover,
+    coverPath: String = "",
     engLevel: String = "C1",
-    progress: Int = 67,
-    title: String = "Atomic Habits",
-    author: String = "James Clear",
-    category: String = "Self-help",
-    description: String = "An Easy & Proven Way to Build Good Habits and Break Bad Ones",
+    progress: Int = 0,
+    title: String = "",
+    author: String = "",
+    genres: List<String> = listOf("Self-help"),
+    description: String = "",
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -211,10 +254,13 @@ fun BookBox(
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
             ){
-                Image(
-                    painter = painterResource(img),
+                //Image Cover
+                AsyncImage(
+                    model = "file:///android_asset/$coverPath",
                     contentDescription = title,
                     contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.sample_cover),
+                    error = painterResource(R.drawable.sample_cover),
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(2f / 3f)
@@ -226,6 +272,7 @@ fun BookBox(
                 ImageBadge(engLevel, Modifier.align(Alignment.BottomEnd))
             }
 
+            //Title
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
@@ -233,6 +280,8 @@ fun BookBox(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+
+            //Author
             Text(
                 text = "By $author",
                 style = MaterialTheme.typography.bodySmall,
@@ -240,17 +289,31 @@ fun BookBox(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.secondaryContainer
+
+            //Genres
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = category,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                )
+                genres.forEach { genreName ->
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        Text(
+                            text = genreName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(
+                                horizontal = 8.dp,
+                                vertical = 2.dp
+                            )
+                        )
+                    }
+                }
             }
+
+            //Description
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,

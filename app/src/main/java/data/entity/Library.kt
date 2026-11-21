@@ -1,20 +1,23 @@
 package data.entity
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.Junction
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
 @Entity(tableName = "genres")
 data class GenreEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "genre_id") val id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "genre_id") val id: Long?,
     @ColumnInfo(name = "genre_name") val name: String
 )
 
 @Entity(tableName = "books")
 data class BookEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "book_id") val id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "book_id") val id: Long?,
     @ColumnInfo(name = "author_name") val author: String,
     val title: String,
     val description: String,
@@ -61,7 +64,7 @@ data class BookGenreCrossRef(
     ]
 )
 data class ChapterEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "chapter_id") val id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "chapter_id") val id: Long?,
     @ColumnInfo(name = "book_id") val bookId: Long,
     @ColumnInfo(name = "chapter_number") val number: Int,
     val title: String,
@@ -81,10 +84,30 @@ data class ChapterEntity(
     ]
 )
 data class BookFileEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "file_id") val id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "file_id") val id: Long?,
     @ColumnInfo(name = "book_id") val bookId: Long,
     val format: String,
     @ColumnInfo(name = "file_url") val fileUrl: String,
     @ColumnInfo(name = "file_size") val fileSize: Long,
     @ColumnInfo(name = "uploaded_at", defaultValue = "CURRENT_TIMESTAMP") val uploadedAt: String
 )
+
+//Create a new data class of book with their genres
+//Idea: @Embedded means put all the book’s columns here”
+//@Relation means “also fetch the genres for this book”
+// Junction tells Room to go through the book_genres table, matching book_id on one side and genre_id on the other.
+
+data class BookWithGenres(
+    @Embedded val book: BookEntity,
+    @Relation(
+        parentColumn = "book_id",
+        entityColumn = "genre_id",
+        associateBy = Junction(
+            value = BookGenreCrossRef::class,
+            parentColumn = "book_id",
+            entityColumn = "genre_id"
+        )
+    )
+    val genres: List<GenreEntity>
+)
+
