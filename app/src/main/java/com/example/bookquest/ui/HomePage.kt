@@ -65,7 +65,10 @@ private val motivationQuotes = listOf(
 private val englishLevels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
 
 @Composable
-fun HomePage(modifier: Modifier = Modifier){
+fun HomePage(
+    modifier: Modifier = Modifier,
+    onBookClick: (Long) -> Unit = {}
+){
     var query by rememberSaveable { mutableStateOf("") }
     val quote = rememberSaveable { motivationQuotes.random() }
     var recommendedOnly by rememberSaveable { mutableStateOf(false) }
@@ -194,7 +197,8 @@ fun HomePage(modifier: Modifier = Modifier){
                     engLevel = book.level,
                     description = book.description,
                     genres = genreNames,
-                    progress = 0
+                    progress = 0,
+                    onClick = { book.id?.let(onBookClick) }
                 )
             }
         }

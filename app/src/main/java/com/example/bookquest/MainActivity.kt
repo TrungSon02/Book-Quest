@@ -13,18 +13,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.bookquest.ui.HomePage
+import com.example.bookquest.ui.reading.ReadingBookRoute
 import com.example.bookquest.ui.theme.BookQuestTheme
 
 
 @Composable
 fun BookQuestApp(){
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var selectedBookId by rememberSaveable { mutableStateOf<Long?>(null) }
+
+    val activeBookId = selectedBookId
+    if (activeBookId != null) {
+        ReadingBookRoute(
+            bookId = activeBookId,
+            onBackClick = { selectedBookId = null }
+        )
+        return
+    }
 
     Scaffold(
         bottomBar = {
@@ -43,7 +55,10 @@ fun BookQuestApp(){
         }
     ) { innerPadding ->
         when (selectedTab) {
-            0 -> HomePage(Modifier.padding(innerPadding))
+            0 -> HomePage(
+                modifier = Modifier.padding(innerPadding),
+                onBookClick = { bookId -> selectedBookId = bookId }
+            )
             1 -> Text("Account", Modifier.padding(innerPadding)) // placeholder
         }
     }
