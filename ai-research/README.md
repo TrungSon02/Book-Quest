@@ -24,7 +24,9 @@ Trên RTX 4070 Laptop 8 GB VRAM và 32 GB RAM, hai lượt thử trước mất 
 
 ## Dùng prompt
 
+Prompt tạo một câu hỏi độ khó vừa trong một lượt. Người đọc có thể tìm đủ căn cứ trong một đoạn, nhưng cần phân biệt đúng người, lý do hoặc thời điểm để chọn đáp án.
+
 1. Mở [prompt.txt](./prompt.txt) và sao chép toàn bộ nội dung.
-2. Thay `{{PASSAGE}}` dưới dòng `PASSAGE` bằng đoạn văn tiếng Anh cần kiểm tra. Nếu đoạn dài, bắt đầu với khoảng 1.500 từ.
+2. Đánh số các đoạn văn tiếng Anh bằng `[1]`, `[2]`, … rồi dán thay cho `{{PASSAGE}}` dưới dòng `PASSAGE`. Nếu văn bản dài, bắt đầu với khoảng 1.500 từ.
 3. Dán vào một cuộc trò chuyện mới trong giao diện llama.cpp và gửi.
-4. Đối chiếu hai trích dẫn với văn bản gốc và kiểm tra chỉ một phương án trả lời được câu hỏi. Nếu model trả `INSUFFICIENT_PASSAGE`, thử một đoạn có thêm ngữ cảnh.
+4. Kết quả JSON có câu hỏi, bốn lựa chọn, `correct_index` (0–3, tương ứng A–D), lời giải và một trích dẫn kèm số đoạn. Đối chiếu trích dẫn với văn bản gốc và kiểm tra chỉ một phương án trả lời đúng câu hỏi. Nếu model trả `INSUFFICIENT_PASSAGE`, thử đoạn có hành động, lý do hoặc kết quả rõ hơn.
