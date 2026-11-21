@@ -9,7 +9,6 @@ import os
 import sqlite3
 
 ROOT = Path(__file__).resolve().parent
-# Keep Hugging Face and model downloads beside this script, on D: when installed there.
 os.environ.setdefault("HF_HOME", str(ROOT / "huggingface_cache"))
 
 import numpy as np
@@ -48,8 +47,7 @@ def load_books():
 def main():
     books = load_books()
     print(f"Loaded {len(books)} books from Book-Quest's SQLite seed.")
-    if len(books) != 20:
-        print("Note: Expected 20 books in the original database seed.")
+    
 
     # Description, title and genre are inputs to the pretrained semantic model.
     texts = [
