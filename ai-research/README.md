@@ -22,11 +22,11 @@ Lệnh trên đặt context 32.768 token và bật thinking. Trên máy có 8 GB
 
 Trên RTX 4070 Laptop 8 GB VRAM và 32 GB RAM, hai lượt thử trước mất khoảng 2–3 phút mỗi lượt, tính cả thời gian nạp model. Số đo đó dùng context 4.096 token và tắt thinking.
 
-## Dùng prompt
+## Tạo câu hỏi qua hai lượt
 
-Prompt tạo một câu hỏi độ khó vừa trong một lượt. Người đọc có thể tìm đủ căn cứ trong một đoạn, nhưng cần phân biệt đúng người, lý do hoặc thời điểm để chọn đáp án.
+Người đọc có thể tìm đủ căn cứ trong một đoạn, nhưng cần phân biệt đúng người, lý do hoặc thời điểm để chọn đáp án.
 
-1. Mở [prompt.txt](./prompt.txt) và sao chép toàn bộ nội dung.
-2. Đánh số các đoạn văn tiếng Anh bằng `[1]`, `[2]`, … rồi dán thay cho `{{PASSAGE}}` dưới dòng `PASSAGE`. Nếu văn bản dài, bắt đầu với khoảng 1.500 từ.
-3. Dán vào một cuộc trò chuyện mới trong giao diện llama.cpp và gửi.
-4. Kết quả JSON có câu hỏi, bốn lựa chọn, `correct_index` (0–3, tương ứng A–D), lời giải và một trích dẫn kèm số đoạn. Đối chiếu trích dẫn với văn bản gốc và kiểm tra chỉ một phương án trả lời đúng câu hỏi. Nếu model trả `INSUFFICIENT_PASSAGE`, thử đoạn có hành động, lý do hoặc kết quả rõ hơn.
+1. **Lọc dữ kiện.** Đánh số các đoạn văn tiếng Anh bằng `[1]`, `[2]`, … rồi thay `{{PASSAGE}}` trong [select_prompt.txt](./select_prompt.txt). Gửi vào chat mới trong llama.cpp. Model trả JSON gồm câu hỏi dự kiến, cụm trả lời `answer_span` và một trích dẫn có số đoạn. Kiểm tra trích dẫn có nguyên văn trong đoạn và chứa cụm trả lời.
+2. **Viết và kiểm tra câu hỏi.** Thay `{{SELECTION}}` trong [prompt.txt](./prompt.txt) bằng JSON đã qua bước 1. Thay `{{PASSAGE}}` bằng văn bản đã đánh số, rồi gửi vào một chat mới. Model trả JSON gồm câu hỏi, bốn lựa chọn, `correct_index` (0–3, tương ứng A–D), lời giải và trích dẫn. Đọc lại bốn lựa chọn để xác nhận chỉ một phương án trả lời được câu hỏi.
+
+Nếu model trả `INSUFFICIENT_PASSAGE` ở một trong hai lượt, thử đoạn có hành động, lý do hoặc kết quả rõ hơn.
