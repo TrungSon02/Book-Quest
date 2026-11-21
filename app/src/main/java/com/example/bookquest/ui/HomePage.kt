@@ -1,7 +1,6 @@
 package com.example.bookquest.ui
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,11 +62,16 @@ private val motivationQuotes = listOf(
 )
 
 //Testing data
-private val genres = listOf("Self-help", "Fiction", "Fantasy", "Science", "History", "Business")
-private val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
+private val englishLevels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
 
 @Composable
 fun HomePage(modifier: Modifier = Modifier){
+    var query by rememberSaveable { mutableStateOf("") }
+    val quote = rememberSaveable { motivationQuotes.random() }
+    var recommendedOnly by rememberSaveable { mutableStateOf(false) }
+    var genre by rememberSaveable { mutableStateOf<String?>(null) }
+    var level by rememberSaveable { mutableStateOf<String?>(null) }
+
     //Get a Context so we can open the database
     val context = LocalContext.current
 
@@ -79,19 +83,21 @@ fun HomePage(modifier: Modifier = Modifier){
         database.bookDao()
     }
 
-    //Ask the DAO for the Flow of books, also only once
-    val booksFlow = remember {
-        bookDao.getAllBooks()
+    // Ask the database again whenever query, genre or level changes
+    val booksFlow = remember(query, genre, level) {
+        bookDao.searchBooks(
+            searchText = query.trim(),
+            level = level,
+            genreName = genre
+        )
     }
-
-    //Turn the Flow into state. Until the first list arrives, use an empty list.
     val books by booksFlow.collectAsState(initial = emptyList())
 
-    var query by rememberSaveable { mutableStateOf("") }
-    val quote = rememberSaveable { motivationQuotes.random() }
-    var recommendedOnly by rememberSaveable { mutableStateOf(false) }
-    var genre by rememberSaveable { mutableStateOf<String?>(null) }
-    var level by rememberSaveable { mutableStateOf<String?>(null) }
+    // Genre names for the dropdown, read from the database
+    val genreNamesFlow = remember {
+        bookDao.getGenreNames()
+    }
+    val genreNames by genreNamesFlow.collectAsState(initial = emptyList())
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -136,8 +142,8 @@ fun HomePage(modifier: Modifier = Modifier){
                 onClick = { recommendedOnly = !recommendedOnly },
                 label = { Text("Recommended") }
             )
-            FilterDropdownChip("Genre", genres, genre) { genre = it }
-            FilterDropdownChip("Level", levels, level) { level = it }
+            FilterDropdownChip("Genre", genreNames, genre) { genre = it }
+            FilterDropdownChip("Level", englishLevels, level) { level = it }
         }
 
         if(1==2) { //Change with the checking if user has read any books afterward
