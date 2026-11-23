@@ -12,10 +12,9 @@ Book Quest dùng đoạn văn tiếng Anh làm đầu vào để thử sinh mộ
 Mở PowerShell, sửa hai đường dẫn đầu cho khớp với máy rồi chạy lệnh.
 
 ```powershell
-$llamaExe = 'C:\AI\llama.cpp\llama-server.exe'
-$modelPath = 'C:\AI\models\gemma-4-31B-it-IQ4_XS.gguf'
+$gemmaModel = 'C:\Users\Admin\Documents\Codex\2026-11-12\find-long-s-final-task-research\work\models\gemma-4-31B-it-IQ4_XS.gguf'
 
-& $llamaExe -m $modelPath -c 32768 -np 1 --fit on --fit-ctx 32768 --fit-target 1024 -fa on --reasoning on --temp 0 --host 127.0.0.1 --port 8080
+& 'D:\Dowloads\llmama_cpp\llama-server.exe' -m $gemmaModel -a 'gemma-4-31B-it-IQ4_XS' -c 12288 -np 1 --fit on --fit-ctx 12288 --fit-target 1536 -fa on -n 1800 --reasoning on --reasoning-budget 576 --reasoning-budget-message 'Stop drafting. Output only the final quiz in the requested format.' --temp 0 --host 127.0.0.1 --port 8080
 ```
 
 Lệnh trên đặt context 32.768 token và bật thinking. Trên máy có 8 GB VRAM, llama.cpp dùng thêm RAM để chạy model. Khi terminal báo `listening`, mở [giao diện llama.cpp](http://127.0.0.1:8080).
