@@ -20,14 +20,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.bookquest.ui.HomePage
+import com.example.bookquest.ui.PreferencePage
 import com.example.bookquest.ui.reading.ReadingBookRoute
 import com.example.bookquest.ui.theme.BookQuestTheme
-
 
 @Composable
 fun BookQuestApp(){
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var selectedBookId by rememberSaveable { mutableStateOf<Long?>(null) }
+    //Set this to a new user's id to open the preference page
+    var preferenceUserId by rememberSaveable { mutableStateOf<Long?>(null) }
+
+    val activePreferenceUserId = preferenceUserId
+    if (activePreferenceUserId != null) {
+        PreferencePage(
+            userId = activePreferenceUserId,
+            onFinished = { preferenceUserId = null }
+        )
+        return
+    }
 
     val activeBookId = selectedBookId
     if (activeBookId != null) {
@@ -60,6 +71,7 @@ fun BookQuestApp(){
                 onBookClick = { bookId -> selectedBookId = bookId }
             )
             1 -> Text("Account", Modifier.padding(innerPadding)) // placeholder
+
         }
     }
 }
