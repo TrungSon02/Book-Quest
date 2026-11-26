@@ -5,15 +5,19 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import data.dao.BookDao
+import data.dao.ReadingDao
 import data.dao.UserDao
 import data.entity.BookEntity
 import data.entity.BookFileEntity
 import data.entity.BookGenreCrossRef
 import data.entity.ChapterEntity
 import data.entity.GenreEntity
+import data.entity.ReadingProgressEntity
+import data.entity.ReadingSessionEntity
 import data.entity.UserBookCrossRef
 import data.entity.UserEntity
 import data.entity.UserGenreCrossRef
+import data.entity.UserLibraryEntity
 
 @Database(
     entities = [
@@ -24,7 +28,10 @@ import data.entity.UserGenreCrossRef
         BookFileEntity::class,
         UserEntity::class,
         UserGenreCrossRef::class,
-        UserBookCrossRef::class
+        UserBookCrossRef::class,
+        UserLibraryEntity::class,
+        ReadingSessionEntity::class,
+        ReadingProgressEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -32,6 +39,7 @@ import data.entity.UserGenreCrossRef
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BookDao
     abstract fun userDao(): UserDao
+    abstract fun readingDao(): ReadingDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null
