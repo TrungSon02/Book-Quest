@@ -2,7 +2,10 @@ package com.example.bookquest
 
 import com.example.bookquest.ui.reading.EpubBookLoader
 import com.example.bookquest.ui.reading.sliceLinesIntoPages
+import data.entity.UserEntity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -90,5 +93,19 @@ class ExampleUnitTest {
                 chapters.all { ch -> ch.pages.isNotEmpty() && ch.pages.all { it.isNotBlank() } }
             )
         }
+    }
+
+    @Test
+    fun userEntity_hasInitialCoinBalanceStreakAndHabitDefaults() {
+        val user = UserEntity(
+            username = "reader1",
+            email = "reader1@example.com",
+            passwordHash = "hashed_pw",
+            englishLevel = "B1"
+        )
+        assertEquals(0, user.coinBalance)
+        assertEquals(0, user.currentReadingStreak)
+        assertNull(user.lastDayStreakClaimed)
+        assertFalse(user.habit21dEnabled)
     }
 }

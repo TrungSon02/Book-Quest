@@ -5,11 +5,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import data.dao.BookDao
+import data.dao.UserDao
 import data.entity.BookEntity
 import data.entity.BookFileEntity
 import data.entity.BookGenreCrossRef
 import data.entity.ChapterEntity
 import data.entity.GenreEntity
+import data.entity.UserBookCrossRef
+import data.entity.UserEntity
+import data.entity.UserGenreCrossRef
 
 @Database(
     entities = [
@@ -17,13 +21,17 @@ import data.entity.GenreEntity
         BookEntity::class,
         BookGenreCrossRef::class,
         ChapterEntity::class,
-        BookFileEntity::class
+        BookFileEntity::class,
+        UserEntity::class,
+        UserGenreCrossRef::class,
+        UserBookCrossRef::class
     ],
     version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BookDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null
@@ -35,6 +43,7 @@ abstract class AppDatabase : RoomDatabase() {
                 "bookquest.db"
             )
                 .createFromAsset("database/bookquest.db")
+                .fallbackToDestructiveMigration(true)
                 .build()
                 .also { instance = it }
         }
