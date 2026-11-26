@@ -55,15 +55,26 @@ interface ReadingDao {
     @Update
     suspend fun updateReadingProgress(progress: ReadingProgressEntity)
 
-    @Query("SELECT * FROM reading_progress WHERE user_id = :userId AND book_id = :bookId LIMIT 1")
-    suspend fun getReadingProgress(userId: Long, bookId: Long): ReadingProgressEntity?
+    @Query("SELECT * FROM reading_progress WHERE user_id = :userId AND chapter_id = :chapterId LIMIT 1")
+    suspend fun getReadingProgress(userId: Long, chapterId: Long): ReadingProgressEntity?
+
+    @Query(
+        """
+        SELECT rp.* FROM reading_progress rp
+        INNER JOIN chapters c ON c.chapter_id = rp.chapter_id
+        WHERE rp.user_id = :userId AND c.book_id = :bookId
+        ORDER BY rp.last_read_at DESC
+        LIMIT 1
+        """
+    )
+    suspend fun getReadingProgressForBook(userId: Long, bookId: Long): ReadingProgressEntity?
 
     @Query("SELECT * FROM reading_progress WHERE user_id = :userId ORDER BY last_read_at DESC")
     fun observeUserReadingProgress(userId: Long): Flow<List<ReadingProgressEntity>>
 
     @Transaction
     suspend fun upsertReadingProgress(progress: ReadingProgressEntity): Long {
-        val existing = getReadingProgress(progress.userId, progress.bookId)
+        val existing = progress.chapterId?.let { getReadingProgress(progress.userId, it) }
         return if (existing == null) {
             insertReadingProgress(progress)
         } else {

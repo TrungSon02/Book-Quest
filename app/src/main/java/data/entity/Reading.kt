@@ -79,12 +79,6 @@ data class ReadingSessionEntity(
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = BookEntity::class,
-            parentColumns = ["book_id"],
-            childColumns = ["book_id"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
             entity = ChapterEntity::class,
             parentColumns = ["chapter_id"],
             childColumns = ["chapter_id"],
@@ -92,17 +86,16 @@ data class ReadingSessionEntity(
         )
     ],
     indices = [
-        Index(value = ["user_id", "book_id"], unique = true),
-        Index(value = ["book_id"]),
+        Index(value = ["user_id", "chapter_id"], unique = true),
         Index(value = ["chapter_id"])
     ]
 )
 data class ReadingProgressEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "progress_id") val id: Long? = null,
     @ColumnInfo(name = "user_id") val userId: Long,
-    @ColumnInfo(name = "book_id") val bookId: Long,
     @ColumnInfo(name = "chapter_id") val chapterId: Long? = null,
-    @ColumnInfo(name = "current_position") val currentPosition: String,
+    @ColumnInfo(name = "page_index", defaultValue = "0") val pageIndex: Int = 0,
+    @ColumnInfo(name = "text_size", defaultValue = "18") val textSize: Int = 18,
     @ColumnInfo(name = "progress_percent", defaultValue = "0.0") val progressPercent: Double = 0.0,
     @ColumnInfo(name = "last_read_at", defaultValue = "CURRENT_TIMESTAMP") val lastReadAt: String = ""
 )
