@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import data.entity.BookWithGenres
+import data.entity.GenreEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -46,6 +47,9 @@ interface BookDao {
     //GET ALL GENRES
     @Query("SELECT genre_name FROM genres ORDER BY genre_name")
     fun getGenreNames(): Flow<List<String>>
+
+    @Query("SELECT * FROM genres ORDER BY genre_name")
+    fun getGenres(): Flow<List<GenreEntity>>
 
     @Query("SELECT * FROM books WHERE book_id = :bookId LIMIT 1")
     suspend fun getBookById(bookId: Long): data.entity.BookEntity?
