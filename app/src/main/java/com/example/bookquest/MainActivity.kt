@@ -35,11 +35,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.bookquest.ui.HomePage
 import com.example.bookquest.ui.auth.AuthRoute
-import com.example.bookquest.ui.auth.OnboardingPreferenceScreen
-import com.example.bookquest.ui.auth.PostAuthDestination
 import com.example.bookquest.ui.reading.ReadingBookRoute
 import com.example.bookquest.ui.theme.BookQuestTheme
 import data.AppDatabase
+
+private const val PREFERENCE_SCREEN_IMPLEMENTED = false
 
 @Composable
 fun BookQuestApp() {
@@ -51,9 +51,11 @@ fun BookQuestApp() {
     val currentUserId = authenticatedUserId
     if (currentUserId == null) {
         AuthRoute(
-            onAuthenticated = { user, destination ->
+            onAuthenticated = { user, isNewUser ->
                 authenticatedUserId = user.id
-                needsPreferences = destination == PostAuthDestination.PREFERENCES
+                // UC-001: new registrations (and unconfigured users) go to Preference Page once implemented;
+                // until then, fall back directly to HomePage.
+                needsPreferences = PREFERENCE_SCREEN_IMPLEMENTED && isNewUser
                 selectedTab = 0
                 selectedBookId = null
             }
@@ -61,11 +63,9 @@ fun BookQuestApp() {
         return
     }
 
-    if (needsPreferences) {
-        OnboardingPreferenceScreen(
-            userId = currentUserId,
-            onCompleted = { needsPreferences = false }
-        )
+    if (PREFERENCE_SCREEN_IMPLEMENTED && needsPreferences) {
+        // TODO: Render PreferenceScreen(userId = currentUserId, onCompleted = { needsPreferences = false })
+        needsPreferences = false
         return
     }
 

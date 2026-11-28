@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import data.entity.UserBookCrossRef
 import data.entity.UserEntity
@@ -41,21 +40,6 @@ interface UserDao {
     @Query("SELECT EXISTS(SELECT 1 FROM users WHERE LOWER(username) = LOWER(:username))")
     suspend fun isUsernameTaken(username: String): Boolean
 
-    @Query(
-        """
-        UPDATE users
-        SET english_level = :englishLevel,
-            habit_21d_enabled = :habit21dEnabled,
-            preferences_completed = 1
-        WHERE user_id = :userId
-        """
-    )
-    suspend fun completePreferences(
-        userId: Long,
-        englishLevel: String,
-        habit21dEnabled: Boolean
-    )
-
     @Query("UPDATE users SET coin_balance = coin_balance + :delta WHERE user_id = :userId")
     suspend fun updateCoinBalance(userId: Long, delta: Int)
 
@@ -83,20 +67,6 @@ interface UserDao {
 
     @Query("SELECT genre_id FROM user_genres WHERE user_id = :userId")
     suspend fun getUserGenreIds(userId: Long): List<Long>
-
-    @Transaction
-    suspend fun saveInitialPreferences(
-        userId: Long,
-        englishLevel: String,
-        habit21dEnabled: Boolean,
-        genreIds: List<Long>
-    ) {
-        completePreferences(userId, englishLevel, habit21dEnabled)
-        clearUserGenres(userId)
-        if (genreIds.isNotEmpty()) {
-            insertUserGenres(genreIds.map { genreId -> UserGenreCrossRef(userId, genreId) })
-        }
-    }
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertUserBooks(refs: List<UserBookCrossRef>)

@@ -54,7 +54,7 @@ enum class AuthMode {
 
 @Composable
 fun AuthRoute(
-    onAuthenticated: (user: UserEntity, destination: PostAuthDestination) -> Unit,
+    onAuthenticated: (user: UserEntity, isNewUser: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -79,7 +79,7 @@ fun AuthRoute(
 fun AuthScreen(
     onLoginSubmit: suspend (identifier: String, password: String) -> LoginResult,
     onRegisterSubmit: suspend (email: String, username: String, password: String) -> RegisterResult,
-    onAuthenticated: (user: UserEntity, destination: PostAuthDestination) -> Unit,
+    onAuthenticated: (user: UserEntity, isNewUser: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var mode by rememberSaveable { mutableStateOf(AuthMode.LOGIN) }
@@ -112,7 +112,7 @@ fun AuthScreen(
                     is LoginResult.Success -> {
                         loginIdentifierError = null
                         loginPasswordError = null
-                        onAuthenticated(result.user, result.destination)
+                        onAuthenticated(result.user, false)
                     }
                     is LoginResult.ValidationError -> {
                         loginIdentifierError = result.identifierError
@@ -135,7 +135,7 @@ fun AuthScreen(
                         signUpEmailError = null
                         signUpUsernameError = null
                         signUpPasswordError = null
-                        onAuthenticated(result.user, PostAuthDestination.PREFERENCES)
+                        onAuthenticated(result.user, true)
                     }
                     is RegisterResult.ValidationError -> {
                         signUpEmailError = result.emailError
@@ -284,7 +284,7 @@ fun AuthScreen(
                             signUpPassword = it
                             if (signUpPasswordError != null) signUpPasswordError = null
                         },
-                        label = "Password (min 4 characters)",
+                        label = "Password",
                         visible = showSignUpPassword,
                         onToggleVisibility = { showSignUpPassword = !showSignUpPassword },
                         errorText = signUpPasswordError,

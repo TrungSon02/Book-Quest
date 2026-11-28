@@ -6,16 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.TimeZone
 
-enum class PostAuthDestination {
-    PREFERENCES,
-    HOME
-}
-
 sealed interface LoginResult {
-    data class Success(
-        val user: UserEntity,
-        val destination: PostAuthDestination
-    ) : LoginResult
+    data class Success(val user: UserEntity) : LoginResult
 
     data class ValidationError(
         val identifierError: String? = null,
@@ -97,12 +89,7 @@ class AuthRepository(
             )
         }
 
-        val destination = if (user.preferencesCompleted) {
-            PostAuthDestination.HOME
-        } else {
-            PostAuthDestination.PREFERENCES
-        }
-        LoginResult.Success(user = user, destination = destination)
+        LoginResult.Success(user = user)
     }
 
     suspend fun register(
@@ -157,8 +144,7 @@ class AuthRepository(
             coinBalance = 0,
             currentReadingStreak = 0,
             lastDayStreakClaimed = null,
-            habit21dEnabled = false,
-            preferencesCompleted = false
+            habit21dEnabled = false
         )
 
         val createdId = gateway.insertUser(newUser)

@@ -33,7 +33,7 @@ import data.entity.UserLibraryEntity
         ReadingSessionEntity::class,
         ReadingProgressEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

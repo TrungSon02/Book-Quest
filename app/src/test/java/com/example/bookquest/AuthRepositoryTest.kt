@@ -4,7 +4,6 @@ import com.example.bookquest.ui.auth.AuthRepository
 import com.example.bookquest.ui.auth.AuthUserGateway
 import com.example.bookquest.ui.auth.LoginResult
 import com.example.bookquest.ui.auth.PasswordHasher
-import com.example.bookquest.ui.auth.PostAuthDestination
 import com.example.bookquest.ui.auth.RegisterResult
 import data.entity.UserEntity
 import kotlinx.coroutines.runBlocking
@@ -73,9 +72,8 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun login_supportsUsernameOrEmailAndRoutesByPreferencesStatus() = runBlocking {
+    fun login_supportsUsernameOrEmail() = runBlocking {
         val reg = repository.register("reader@bookquest.app", "bookworm", "secret") as RegisterResult.Success
-        assertFalse(reg.user.preferencesCompleted)
         assertNotEquals("secret", reg.user.passwordHash)
 
         // Unknown identifier
@@ -88,14 +86,13 @@ class AuthRepositoryTest {
         assertNull(wrongPw.identifierError)
         assertNotNull(wrongPw.passwordError)
 
-        // Login with username when preferences not completed -> PREFERENCES
+        // Login with username
         val byUsername = repository.login("bookworm", "secret") as LoginResult.Success
-        assertEquals(PostAuthDestination.PREFERENCES, byUsername.destination)
+        assertEquals("bookworm", byUsername.user.username)
 
-        // Mark preferences completed -> login by email -> HOME
-        gateway.markPreferencesCompleted(byUsername.user.id!!)
+        // Login with email (case-insensitive)
         val byEmail = repository.login("READER@bookquest.app", "secret") as LoginResult.Success
-        assertEquals(PostAuthDestination.HOME, byEmail.destination)
+        assertEquals("reader@bookquest.app", byEmail.user.email)
     }
 
     private class FakeAuthUserGateway : AuthUserGateway {
@@ -118,13 +115,6 @@ class AuthRepositoryTest {
             val id = nextId++
             users += user.copy(id = id)
             return id
-        }
-
-        fun markPreferencesCompleted(userId: Long) {
-            val idx = users.indexOfFirst { it.id == userId }
-            if (idx >= 0) {
-                users[idx] = users[idx].copy(preferencesCompleted = true)
-            }
         }
     }
 }

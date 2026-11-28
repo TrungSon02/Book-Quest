@@ -26,7 +26,6 @@ data class UserEntity(
     @ColumnInfo(name = "current_reading_streak", defaultValue = "0") val currentReadingStreak: Int = 0,
     @ColumnInfo(name = "last_day_streak_claimed") val lastDayStreakClaimed: String? = null,
     @ColumnInfo(name = "habit_21d_enabled", defaultValue = "0") val habit21dEnabled: Boolean = false,
-    @ColumnInfo(name = "preferences_completed", defaultValue = "0") val preferencesCompleted: Boolean = false,
     @ColumnInfo(name = "created_at", defaultValue = "CURRENT_TIMESTAMP") val createdAt: String = ""
 )
 
